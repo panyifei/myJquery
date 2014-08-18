@@ -2,146 +2,262 @@
 
 var version="0.0.0";
 
-var jQuer=function(selector,context){
-    return new jQuer.fn.init(selector,context);
+var document=window.document;
+
+
+function isArraylike( obj ) {
+    var length = obj.length,
+        type = jQuer.type( obj );
+
+    if ( type === "function" ) {
+        return false;
+    }
+
+    if ( obj.nodeType === 1 && length ) {
+        return true;
+    }
+
+    return type === "array" || length === 0 ||
+        typeof length === "number" && length > 0 && ( length - 1 ) in obj;
+}
+
+var jQuer=function(selector){
+    var a=new jQuer.fn.init(selector);
+    return a;
 };
+jQuer.merge= function( first, second ) {
+        var len = +second.length,
+            j = 0,
+            i = first.length;
 
-var  document = window.document;
+        while ( j < len ) {
+            first[ i++ ] = second[ j++ ];
+        }
 
+        // Support: IE<9
+        // Workaround casting of .length to NaN on otherwise arraylike objects (e.g., NodeLists)
+        if ( len !== len ) {
+            while ( second[j] !== undefined ) {
+                first[ i++ ] = second[ j++ ];
+            }
+        }
 
+        first.length = i;
 
-jQuer.type=function( obj ) {
+        return first;
+    };
+jQuer.type= function( obj ) {
         if ( obj == null ) {
             return obj + "";
         }
         return typeof obj === "object" || typeof obj === "function" ?
-            class2type[ toString.call(obj) ] || "object" :
+            "object" :
             typeof obj;
-    };
-
-jQuer.isArray=Array.isArray || function( obj ) {
-        return jQuery.type(obj) === "array";
-    };
-
-var rootjQuer;
-jQuer.fn=jQuer.prototype={
-    jQuer: version,
-    constructor: jQuer
-};
-
-var init = jQuer.fn.init= function( selector, context) {
-            if(!selector){
-                return false;
-            }
-            if(typeof selector === "string"){
-                return rootjQuer.find(selector);
-            }else if ( selector.nodeType === 9) {
-                this.context = this[0] = selector;
-                this.length = 1;
-                return this;
-                //这里是处理节点的,如document,怎么处理的还没看
-            } else{
-                console.log("没招到");
-            }
-};//用来返回找到的元素
-init.prototype = jQuer.fn;
-
-jQuer.fn.css= function( name, value ) {
-        return access( this, function( elem, name, value ) {
-            var styles, len,
-                map = {},
-                i = 0;
-
-            if ( jQuer.isArray( name ) ) {
-                styles = getStyles( elem );
-                len = name.length;
-
-                for ( ; i < len; i++ ) {
-                    map[ name[ i ] ] = jQuer.css( elem, name[ i ], false, styles );
-                }
-
-                return map;
-            }
-
-            return value !== undefined ?
-                jQuer.style( elem, name, value ) :
-                jQuer.css( elem, name );
-        }, name, value, arguments.length > 1 );
-    };
-    //原生的jQuer的css方法
-
-    
-
-var access = jQuer.access = function( elems, fn, key, value, chainable, emptyGet, raw ) {
-    var i = 0,
-        length = elems.length,
-        bulk = key == null;
-    //console.log("bulk="+bulk);//bulk的用处貌似是判断是否传值了,一般不用
-    // Sets many values
-    if ( jQuer.type( key ) === "object" ) {
-        chainable = true;
-        for ( i in key ) {
-            jQuer.access( elems, fn, i, key[i], true, emptyGet, raw );
-        }
-    // Sets one value
-    } else if ( value !== undefined ) {
-        chainable = true;
-        if ( !jQuer.isFunction( value ) ) {
-            raw = true;
-        }
-        if ( bulk ) {
-            // Bulk operations run against the entire set
-            if ( raw ) {
-                fn.call( elems, value );
-                fn = null;
-
-            // ...except when executing function values
-            } else {
-                bulk = fn;
-                fn = function( elem, key, value ) {
-                    return bulk.call( jQuer( elem ), value );
-                };
-            }
-        }
-        if ( fn ) {
-            for ( ; i < length; i++ ) {
-                fn( elems[i], key, raw ? value : value.call( elems[i], i, fn( elems[i], key ) ) );
-            }
-        }
-        //这里是真正的改变的地方,这里的row是true
     }
-    //console.log("chainable="+chainable);//判断是否可链式
-    return chainable ?
-        elems :
+jQuer.makeArray= function( arr, results ) {
+        var ret = results || [];
 
-        // Gets
-        bulk ?
-            fn.call( elems ) :
-            length ? fn( elems[0], key ) : emptyGet;
-};////原生的jQuer的css调用的access方法
-
-
-
-
-
-rootjQuer = jQuer( document );
-//console.log(rootjQuer.find);
-
-jQuer.fn.find= function( selector ) {
-        var self = this,
-            len = self.length;
-        var ret=document.querySelectorAll(selector);
-        for(var i=0;i<ret.length;i++){
-            console.log(typeof ret[i]);
-            ret[i].css=jQuer.fn.css;
-            ret[i].prototype=jQuer.fn;
-            //console.log(ret[0].prototype.css());
+        if ( arr != null ) {
+            if ( isArraylike( Object(arr) ) ) {
+                jQuer.merge( ret,
+                    typeof arr === "string" ?
+                    [ arr ] : arr
+                );
+            } else {
+                push.call( ret, arr );
+            }
         }
 
         return ret;
+    };
+    
+jQuer.fn=jQuer.prototype={
+    constructor: jQuer,
+    version:version,
+    init:function(selector){
+
+        var res=document.querySelectorAll(selector);
+        for(var a=0;a<res.length;a++){
+            this[a]=res[a];
+        }
+        this.length=res.length-1;
+        return jQuer.makeArray( selector, this );
+
+    }
 };
 
 
-window.jQuer = jQuer;
+
+
+//////////////
+
+function vendorPropName( style, name ) {
+
+    // shortcut for names that are not vendor prefixed
+    if ( name in style ) {
+        return name;
+    }
+
+    // check for vendor prefixed names
+    var capName = name.charAt(0).toUpperCase() + name.slice(1),
+        origName = name,
+        i = cssPrefixes.length;
+
+    while ( i-- ) {
+        name = cssPrefixes[ i ] + capName;
+        if ( name in style ) {
+            return name;
+        }
+    }
+
+    return origName;
+}
+var support = {};
+var pnum = (/[+-]?(?:\d*\.|)\d+(?:[eE][+-]?\d+|)/).source;
+var rrelNum = new RegExp( "^([+-])=(" + pnum + ")", "i" );
+var rmsPrefix = /^-ms-/,
+    rdashAlpha = /-([\da-z])/gi,
+    // Used by jQuer.camelCase as callback to replace()
+    fcamelCase = function( all, letter ) {
+        return letter.toUpperCase();
+    };
+
+jQuer.cssHooks= {
+        opacity: {
+            get: function( elem, computed ) {
+                if ( computed ) {
+                    // We should always get a number back from opacity
+                    var ret = curCSS( elem, "opacity" );
+                    return ret === "" ? "1" : ret;
+                }
+            }
+        }
+    };
+jQuer.cssNumber={
+        "columnCount": true,
+        "fillOpacity": true,
+        "flexGrow": true,
+        "flexShrink": true,
+        "fontWeight": true,
+        "lineHeight": true,
+        "opacity": true,
+        "order": true,
+        "orphans": true,
+        "widows": true,
+        "zIndex": true,
+        "zoom": true
+    };
+
+    // Add in properties whose names you wish to fix before
+    // setting or getting the value
+jQuer.cssProps={
+        // normalize float css property
+        //"float": support.cssFloat ? "cssFloat" : "styleFloat"
+        "float": true ? "cssFloat" : "styleFloat"
+    };
+jQuer.camelCase= function( string ) {
+        return string.replace( rmsPrefix, "ms-" ).replace( rdashAlpha, fcamelCase );
+    };
+jQuer.fn.remove= function() {
+        var elem, elems=this,i = 0;
+        for ( ; (elem = elems[i]) != null; i++ ) {
+            if ( elem.parentNode ) {
+                elem.parentNode.removeChild( elem );
+            }
+        }
+        return this;
+    };
+jQuer.style= function( elem, name, value, extra ) {
+        // Don't set styles on text and comment nodes
+
+        if ( !elem || elem.nodeType === 3 || elem.nodeType === 8 || !elem.style ) {
+            return;
+        }
+        if(name===null||!name){
+            return;
+        }
+
+        // Make sure that we're working with the right name
+        var ret, type, hooks,
+            origName = jQuer.camelCase( name ),
+            style = elem.style;
+
+        name = jQuer.cssProps[ origName ] || ( jQuer.cssProps[ origName ] = vendorPropName( style, origName ) );
+
+        // gets hook for the prefixed version
+        // followed by the unprefixed version
+        hooks = jQuer.cssHooks[ name ] || jQuer.cssHooks[ origName ];
+
+        // Check if we're setting a value
+        if ( value !== undefined ) {
+            type = typeof value;
+
+            // convert relative number strings (+= or -=) to relative numbers. #7345
+            if ( type === "string" && (ret = rrelNum.exec( value )) ) {
+                value = ( ret[1] + 1 ) * ret[2] + parseFloat( jQuer.css( elem, name ) );
+                // Fixes bug #9237
+                type = "number";
+            }
+
+            // Make sure that null and NaN values aren't set. See: #7116
+            if ( value == null || value !== value ) {
+                return;
+            }
+
+            // If a number was passed in, add 'px' to the (except for certain CSS properties)
+            if ( type === "number" && !jQuer.cssNumber[ origName ] ) {
+                value += "px";
+            }
+
+            // Fixes #8908, it can be done more correctly by specifing setters in cssHooks,
+            // but it would mean to define eight (for every problematic property) identical functions
+            if ( !support.clearCloneStyle && value === "" && name.indexOf("background") === 0 ) {
+                style[ name ] = "inherit";
+            }
+
+            // If a hook was provided, use that value, otherwise just set the specified value
+            if ( !hooks || !("set" in hooks) || (value = hooks.set( elem, value, extra )) !== undefined ) {
+
+                // Support: IE
+                // Swallow errors from 'invalid' CSS values (#5509)
+                try {
+                    style[ name ] = value;
+                } catch(e) {}
+            }
+            //这里是设值
+        } else {
+            // If a hook was provided get the non-computed value from there
+            if ( hooks && "get" in hooks && (ret = hooks.get( elem, false, extra )) !== undefined ) {
+                return ret;
+            }
+
+            // Otherwise just get the value from the style object
+            return style[ name ];
+        }
+    };
+/////////
+jQuer.fn.css=function(key,value,needReturn,index){
+    if (this.length>1&&!needReturn) {
+        for(var i=0;i<this.length;i++){
+            this.css(key,value,true,i);
+        }
+        return this;
+    }else{
+        index=index||0;
+        console.log("chaneg");
+        jQuer.style(this[index],key,value);
+        return this;
+    }
+};
+
+
+jQuer.fn.init.prototype=jQuer.fn;
+
+
+
+
+
+
+window.jQuer = window.$ =jQuer;
 
 })(window);

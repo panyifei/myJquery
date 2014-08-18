@@ -4,85 +4,30 @@ var version="0.0.0";
 
 var document=window.document;
 
-
-function isArraylike( obj ) {
-    var length = obj.length,
-        type = jQuer.type( obj );
-
-    if ( type === "function" ) {
-        return false;
-    }
-
-    if ( obj.nodeType === 1 && length ) {
-        return true;
-    }
-
-    return type === "array" || length === 0 ||
-        typeof length === "number" && length > 0 && ( length - 1 ) in obj;
-}
-
 var jQuer=function(selector){
     var a=new jQuer.fn.init(selector);
     return a;
 };
-jQuer.merge= function( first, second ) {
-        var len = +second.length,
-            j = 0,
-            i = first.length;
-
-        while ( j < len ) {
-            first[ i++ ] = second[ j++ ];
-        }
-
-        // Support: IE<9
-        // Workaround casting of .length to NaN on otherwise arraylike objects (e.g., NodeLists)
-        if ( len !== len ) {
-            while ( second[j] !== undefined ) {
-                first[ i++ ] = second[ j++ ];
-            }
-        }
-
-        first.length = i;
-
-        return first;
-    };
-jQuer.type= function( obj ) {
-        if ( obj == null ) {
-            return obj + "";
-        }
-        return typeof obj === "object" || typeof obj === "function" ?
-            "object" :
-            typeof obj;
-    }
 jQuer.makeArray= function( arr, results ) {
-        var ret = results || [];
+        var ret = [];
 
-        if ( arr != null ) {
-            if ( isArraylike( Object(arr) ) ) {
-                jQuer.merge( ret,
-                    typeof arr === "string" ?
-                    [ arr ] : arr
-                );
-            } else {
-                push.call( ret, arr );
-            }
+        for(var i=0;i<results.length;i++){
+            ret.push(results[i]);
         }
 
         return ret;
     };
-    
 jQuer.fn=jQuer.prototype={
     constructor: jQuer,
     version:version,
     init:function(selector){
-
+        var ret=[];
         var res=document.querySelectorAll(selector);
         for(var a=0;a<res.length;a++){
             this[a]=res[a];
         }
-        this.length=res.length-1;
-        return jQuer.makeArray( selector, this );
-
+        this.length=res.length;
+        return this;
     }
 };
 
@@ -90,7 +35,6 @@ jQuer.fn=jQuer.prototype={
 
 
 //////////////
-
 function vendorPropName( style, name ) {
 
     // shortcut for names that are not vendor prefixed
@@ -121,7 +65,6 @@ var rmsPrefix = /^-ms-/,
     fcamelCase = function( all, letter ) {
         return letter.toUpperCase();
     };
-
 jQuer.cssHooks= {
         opacity: {
             get: function( elem, computed ) {
@@ -236,6 +179,7 @@ jQuer.style= function( elem, name, value, extra ) {
         }
     };
 /////////
+
 jQuer.fn.css=function(key,value,needReturn,index){
     if (this.length>1&&!needReturn) {
         for(var i=0;i<this.length;i++){
@@ -244,19 +188,12 @@ jQuer.fn.css=function(key,value,needReturn,index){
         return this;
     }else{
         index=index||0;
-        console.log("chaneg");
         jQuer.style(this[index],key,value);
         return this;
     }
 };
 
-
 jQuer.fn.init.prototype=jQuer.fn;
-
-
-
-
-
 
 window.jQuer = window.$ =jQuer;
 
