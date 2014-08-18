@@ -1,0 +1,23 @@
+<html>
+<head>
+</head>
+<body>
+    <script type="text/javascript" src="./myJquery3.js"></script>
+    <span id="ss">
+    </span>
+    <div class="ss">
+    </div>
+    <div class="ss">
+    </div>
+    <script type="text/javascript">
+    $("#ss").css("background-color","black");
+    //console.log($(".ss").css("background-color","black"));
+
+    $.fn.abc = function(){
+        return this[0] && this[0].tagName;
+    };
+
+    console.log($("#ss").abc()); // 'span'
+    </script>
+</body>
+</html>
